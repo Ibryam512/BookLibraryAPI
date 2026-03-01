@@ -1,4 +1,4 @@
-package com.example;
+package com.example.resource;
 
 import com.example.common.Result;
 import com.example.entity.Book;
@@ -128,17 +128,14 @@ public class BookResource {
                 })
                 .orElse(Result.fail(Collections.singletonList("Book with id " + id + " not found"), 404));
 
-        return switch (result) {
-            case Result.Success<Void> ignored -> Response.noContent().build();
-            case Result.Failure<Void> f       -> Response.status(f.statusCode())
-                    .entity(new ErrorMessage(f.errors()))
-                    .build();
-        };
+        return toResponse(result);
     }
 
     private <T> Response toResponse(Result<T> result) {
         return switch (result) {
-            case Result.Success<T> s -> Response.ok(s.value()).build();
+            case Result.Success<T> s -> s.value() == null
+                    ? Response.noContent().build()
+                    : Response.ok(s.value()).build();
             case Result.Failure<T> f -> Response.status(f.statusCode())
                     .entity(new ErrorMessage(f.errors()))
                     .build();
